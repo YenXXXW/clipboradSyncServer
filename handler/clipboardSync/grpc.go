@@ -1,9 +1,13 @@
 package handler
 
 import (
+	"context"
+
 	pb "github.com/YenXXXW/clipboradSyncServer/genproto/clipboardSync"
 	"github.com/YenXXXW/clipboradSyncServer/types"
 	"google.golang.org/grpc"
+
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type ClipboardGrpcHandler struct {
@@ -14,4 +18,9 @@ type ClipboardGrpcHandler struct {
 func (h *ClipboardGrpcHandler) SubscribeClipBoardContentUpdate(req *pb.SubscribeRequest, stream grpc.ServerStreamingServer[pb.ClipBoardContent]) error {
 	return nil
 
+}
+
+func (h *ClipboardGrpcHandler) SendClipBoardUpdate(ctx context.Context, data *pb.ClipBoardContent) (*emptypb.Empty, error) {
+
+	return nil, nil
 }
