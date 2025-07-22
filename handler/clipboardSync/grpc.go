@@ -15,12 +15,12 @@ type ClipboardGrpcHandler struct {
 	pb.UnimplementedClipSyncServiceServer
 }
 
-func (h *ClipboardGrpcHandler) SubscribeClipBoardContentUpdate(req *pb.SubscribeRequest, stream grpc.ServerStreamingServer[pb.ClipBoardContent]) error {
+func (h *ClipboardGrpcHandler) SubscribeClipBoardContentUpdate(req *pb.SubscribeRequest, stream grpc.ServerStreamingServer[pb.ClipboardContent]) error {
 	return nil
 
 }
 
-func (h *ClipboardGrpcHandler) SendClipBoardUpdate(ctx context.Context, data *pb.ClipBoardContent) (*emptypb.Empty, error) {
+func (h *ClipboardGrpcHandler) SendClipBoardUpdate(ctx context.Context, data *pb.ClipboardContent) (*emptypb.Empty, error) {
 
 	return nil, nil
 }

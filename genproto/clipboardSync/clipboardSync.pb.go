@@ -22,27 +22,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type ClipBoardContent struct {
+type ClipboardContent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Text          string                 `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ClipBoardContent) Reset() {
-	*x = ClipBoardContent{}
+func (x *ClipboardContent) Reset() {
+	*x = ClipboardContent{}
 	mi := &file_clipboardSync_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ClipBoardContent) String() string {
+func (x *ClipboardContent) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ClipBoardContent) ProtoMessage() {}
+func (*ClipboardContent) ProtoMessage() {}
 
-func (x *ClipBoardContent) ProtoReflect() protoreflect.Message {
+func (x *ClipboardContent) ProtoReflect() protoreflect.Message {
 	mi := &file_clipboardSync_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -54,28 +54,81 @@ func (x *ClipBoardContent) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ClipBoardContent.ProtoReflect.Descriptor instead.
-func (*ClipBoardContent) Descriptor() ([]byte, []int) {
+// Deprecated: Use ClipboardContent.ProtoReflect.Descriptor instead.
+func (*ClipboardContent) Descriptor() ([]byte, []int) {
 	return file_clipboardSync_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ClipBoardContent) GetText() string {
+func (x *ClipboardContent) GetText() string {
 	if x != nil {
 		return x.Text
 	}
 	return ""
 }
 
+type ClipboardUpdateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoomId        string                 `protobuf:"bytes,1,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	Content       *ClipboardContent      `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClipboardUpdateRequest) Reset() {
+	*x = ClipboardUpdateRequest{}
+	mi := &file_clipboardSync_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClipboardUpdateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClipboardUpdateRequest) ProtoMessage() {}
+
+func (x *ClipboardUpdateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_clipboardSync_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClipboardUpdateRequest.ProtoReflect.Descriptor instead.
+func (*ClipboardUpdateRequest) Descriptor() ([]byte, []int) {
+	return file_clipboardSync_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ClipboardUpdateRequest) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+func (x *ClipboardUpdateRequest) GetContent() *ClipboardContent {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
 type SubscribeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DeviceId      string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	RoomId        string                 `protobuf:"bytes,2,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SubscribeRequest) Reset() {
 	*x = SubscribeRequest{}
-	mi := &file_clipboardSync_proto_msgTypes[1]
+	mi := &file_clipboardSync_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -87,7 +140,7 @@ func (x *SubscribeRequest) String() string {
 func (*SubscribeRequest) ProtoMessage() {}
 
 func (x *SubscribeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_clipboardSync_proto_msgTypes[1]
+	mi := &file_clipboardSync_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -100,7 +153,7 @@ func (x *SubscribeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscribeRequest.ProtoReflect.Descriptor instead.
 func (*SubscribeRequest) Descriptor() ([]byte, []int) {
-	return file_clipboardSync_proto_rawDescGZIP(), []int{1}
+	return file_clipboardSync_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SubscribeRequest) GetDeviceId() string {
@@ -110,18 +163,29 @@ func (x *SubscribeRequest) GetDeviceId() string {
 	return ""
 }
 
+func (x *SubscribeRequest) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
 var File_clipboardSync_proto protoreflect.FileDescriptor
 
 const file_clipboardSync_proto_rawDesc = "" +
 	"\n" +
 	"\x13clipboardSync.proto\x1a\x1bgoogle/protobuf/empty.proto\"&\n" +
-	"\x10ClipBoardContent\x12\x12\n" +
-	"\x04text\x18\x01 \x01(\tR\x04text\"/\n" +
+	"\x10ClipboardContent\x12\x12\n" +
+	"\x04text\x18\x01 \x01(\tR\x04text\"^\n" +
+	"\x16ClipboardUpdateRequest\x12\x17\n" +
+	"\aroom_id\x18\x01 \x01(\tR\x06roomId\x12+\n" +
+	"\acontent\x18\x02 \x01(\v2\x11.ClipboardContentR\acontent\"H\n" +
 	"\x10SubscribeRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId2\x9e\x01\n" +
+	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12\x17\n" +
+	"\aroom_id\x18\x02 \x01(\tR\x06roomId2\xa4\x01\n" +
 	"\x0fClipSyncService\x12I\n" +
-	"\x1fSubscribeClipBoardContentUpdate\x12\x11.SubscribeRequest\x1a\x11.ClipBoardContent0\x01\x12@\n" +
-	"\x13sendClipBoardUpdate\x12\x11.ClipBoardContent\x1a\x16.google.protobuf.EmptyB\"Z github.com/YenXXXW/clipboardSyncb\x06proto3"
+	"\x1fSubscribeClipBoardContentUpdate\x12\x11.SubscribeRequest\x1a\x11.ClipboardContent0\x01\x12F\n" +
+	"\x13sendClipBoardUpdate\x12\x17.ClipboardUpdateRequest\x1a\x16.google.protobuf.EmptyB\"Z github.com/YenXXXW/clipboardSyncb\x06proto3"
 
 var (
 	file_clipboardSync_proto_rawDescOnce sync.Once
@@ -135,22 +199,24 @@ func file_clipboardSync_proto_rawDescGZIP() []byte {
 	return file_clipboardSync_proto_rawDescData
 }
 
-var file_clipboardSync_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_clipboardSync_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_clipboardSync_proto_goTypes = []any{
-	(*ClipBoardContent)(nil), // 0: ClipBoardContent
-	(*SubscribeRequest)(nil), // 1: SubscribeRequest
-	(*emptypb.Empty)(nil),    // 2: google.protobuf.Empty
+	(*ClipboardContent)(nil),       // 0: ClipboardContent
+	(*ClipboardUpdateRequest)(nil), // 1: ClipboardUpdateRequest
+	(*SubscribeRequest)(nil),       // 2: SubscribeRequest
+	(*emptypb.Empty)(nil),          // 3: google.protobuf.Empty
 }
 var file_clipboardSync_proto_depIdxs = []int32{
-	1, // 0: ClipSyncService.SubscribeClipBoardContentUpdate:input_type -> SubscribeRequest
-	0, // 1: ClipSyncService.sendClipBoardUpdate:input_type -> ClipBoardContent
-	0, // 2: ClipSyncService.SubscribeClipBoardContentUpdate:output_type -> ClipBoardContent
-	2, // 3: ClipSyncService.sendClipBoardUpdate:output_type -> google.protobuf.Empty
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0, // 0: ClipboardUpdateRequest.content:type_name -> ClipboardContent
+	2, // 1: ClipSyncService.SubscribeClipBoardContentUpdate:input_type -> SubscribeRequest
+	1, // 2: ClipSyncService.sendClipBoardUpdate:input_type -> ClipboardUpdateRequest
+	0, // 3: ClipSyncService.SubscribeClipBoardContentUpdate:output_type -> ClipboardContent
+	3, // 4: ClipSyncService.sendClipBoardUpdate:output_type -> google.protobuf.Empty
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_clipboardSync_proto_init() }
@@ -164,7 +230,7 @@ func file_clipboardSync_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_clipboardSync_proto_rawDesc), len(file_clipboardSync_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

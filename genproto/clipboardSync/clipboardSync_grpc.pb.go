@@ -28,8 +28,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ClipSyncServiceClient interface {
-	SubscribeClipBoardContentUpdate(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ClipBoardContent], error)
-	SendClipBoardUpdate(ctx context.Context, in *ClipBoardContent, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SubscribeClipBoardContentUpdate(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ClipboardContent], error)
+	SendClipBoardUpdate(ctx context.Context, in *ClipboardUpdateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type clipSyncServiceClient struct {
@@ -40,13 +40,13 @@ func NewClipSyncServiceClient(cc grpc.ClientConnInterface) ClipSyncServiceClient
 	return &clipSyncServiceClient{cc}
 }
 
-func (c *clipSyncServiceClient) SubscribeClipBoardContentUpdate(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ClipBoardContent], error) {
+func (c *clipSyncServiceClient) SubscribeClipBoardContentUpdate(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ClipboardContent], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &ClipSyncService_ServiceDesc.Streams[0], ClipSyncService_SubscribeClipBoardContentUpdate_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[SubscribeRequest, ClipBoardContent]{ClientStream: stream}
+	x := &grpc.GenericClientStream[SubscribeRequest, ClipboardContent]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -57,9 +57,9 @@ func (c *clipSyncServiceClient) SubscribeClipBoardContentUpdate(ctx context.Cont
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ClipSyncService_SubscribeClipBoardContentUpdateClient = grpc.ServerStreamingClient[ClipBoardContent]
+type ClipSyncService_SubscribeClipBoardContentUpdateClient = grpc.ServerStreamingClient[ClipboardContent]
 
-func (c *clipSyncServiceClient) SendClipBoardUpdate(ctx context.Context, in *ClipBoardContent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *clipSyncServiceClient) SendClipBoardUpdate(ctx context.Context, in *ClipboardUpdateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, ClipSyncService_SendClipBoardUpdate_FullMethodName, in, out, cOpts...)
@@ -73,8 +73,8 @@ func (c *clipSyncServiceClient) SendClipBoardUpdate(ctx context.Context, in *Cli
 // All implementations must embed UnimplementedClipSyncServiceServer
 // for forward compatibility.
 type ClipSyncServiceServer interface {
-	SubscribeClipBoardContentUpdate(*SubscribeRequest, grpc.ServerStreamingServer[ClipBoardContent]) error
-	SendClipBoardUpdate(context.Context, *ClipBoardContent) (*emptypb.Empty, error)
+	SubscribeClipBoardContentUpdate(*SubscribeRequest, grpc.ServerStreamingServer[ClipboardContent]) error
+	SendClipBoardUpdate(context.Context, *ClipboardUpdateRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedClipSyncServiceServer()
 }
 
@@ -85,10 +85,10 @@ type ClipSyncServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedClipSyncServiceServer struct{}
 
-func (UnimplementedClipSyncServiceServer) SubscribeClipBoardContentUpdate(*SubscribeRequest, grpc.ServerStreamingServer[ClipBoardContent]) error {
+func (UnimplementedClipSyncServiceServer) SubscribeClipBoardContentUpdate(*SubscribeRequest, grpc.ServerStreamingServer[ClipboardContent]) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeClipBoardContentUpdate not implemented")
 }
-func (UnimplementedClipSyncServiceServer) SendClipBoardUpdate(context.Context, *ClipBoardContent) (*emptypb.Empty, error) {
+func (UnimplementedClipSyncServiceServer) SendClipBoardUpdate(context.Context, *ClipboardUpdateRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendClipBoardUpdate not implemented")
 }
 func (UnimplementedClipSyncServiceServer) mustEmbedUnimplementedClipSyncServiceServer() {}
@@ -117,14 +117,14 @@ func _ClipSyncService_SubscribeClipBoardContentUpdate_Handler(srv interface{}, s
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(ClipSyncServiceServer).SubscribeClipBoardContentUpdate(m, &grpc.GenericServerStream[SubscribeRequest, ClipBoardContent]{ServerStream: stream})
+	return srv.(ClipSyncServiceServer).SubscribeClipBoardContentUpdate(m, &grpc.GenericServerStream[SubscribeRequest, ClipboardContent]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ClipSyncService_SubscribeClipBoardContentUpdateServer = grpc.ServerStreamingServer[ClipBoardContent]
+type ClipSyncService_SubscribeClipBoardContentUpdateServer = grpc.ServerStreamingServer[ClipboardContent]
 
 func _ClipSyncService_SendClipBoardUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ClipBoardContent)
+	in := new(ClipboardUpdateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func _ClipSyncService_SendClipBoardUpdate_Handler(srv interface{}, ctx context.C
 		FullMethod: ClipSyncService_SendClipBoardUpdate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClipSyncServiceServer).SendClipBoardUpdate(ctx, req.(*ClipBoardContent))
+		return srv.(ClipSyncServiceServer).SendClipBoardUpdate(ctx, req.(*ClipboardUpdateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

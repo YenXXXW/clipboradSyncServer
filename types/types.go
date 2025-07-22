@@ -9,6 +9,6 @@ import (
 )
 
 type ClipboardSyncService interface {
-	SubscribeClipBoardContentUpdate(*clipboardSync.SubscribeRequest, grpc.ServerStreamingServer[clipboardSync.ClipBoardContent]) error
-	SendClipBoardUpdate(context.Context, *clipboardSync.ClipBoardContent) (*emptypb.Empty, error)
+	SubscribeClipBoardContentUpdate(*clipboardSync.SubscribeRequest, grpc.ServerStreamingServer[clipboardSync.ClipboardContent]) error
+	SendClipBoardUpdate(context.Context, *clipboardSync.ClipboardUpdateRequest) (*emptypb.Empty, error)
 }
