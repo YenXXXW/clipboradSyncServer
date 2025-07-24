@@ -6,21 +6,43 @@ import (
 	pb "github.com/YenXXXW/clipboradSyncServer/genproto/clipboardSync"
 	"github.com/YenXXXW/clipboradSyncServer/types"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
-type ClipboardGrpcHandler struct {
+type ClipboardSypcGrpcHandler struct {
 	clipboardSyncService types.ClipboardSyncService
 	pb.UnimplementedClipSyncServiceServer
 }
 
-func (h *ClipboardGrpcHandler) SubscribeClipBoardContentUpdate(req *pb.SubscribeRequest, stream grpc.ServerStreamingServer[pb.ClipboardContent]) error {
+func NewGrpcClipboardSyncService(grpc *grpc.Server, clipboardSyncService types.ClipboardSyncService) {
+	grpcHandler := &ClipboardSypcGrpcHandler{
+		clipboardSyncService: clipboardSyncService,
+	}
+
+	pb.RegisterClipSyncServiceServer(grpc, grpcHandler)
+}
+
+func (h *ClipboardSypcGrpcHandler) SubscribeClipBoardContentUpdate(req *pb.SubscribeRequest, stream grpc.ServerStreamingServer[pb.ClipboardContent]) error {
+	roomId := req.GetRoomId()
+	deviceId := req.GetDeviceId()
+
+	if err := h.clipboardSyncService.SubscribeClipBoardContentUpdate(deviceId, roomId, stream); err != nil {
+		return status.Error(codes.Unavailable, err.Error())
+	}
+
 	return nil
 
 }
 
-func (h *ClipboardGrpcHandler) SendClipBoardUpdate(ctx context.Context, data *pb.ClipboardContent) (*emptypb.Empty, error) {
+func (h *ClipboardSypcGrpcHandler) SendClipBoardUpdate(ctx context.Context, req *pb.ClipboardUpdateRequest) (*emptypb.Empty, error) {
 
-	return nil, nil
+	err := h.clipboardSyncService.SendClipBoardUpdate(ctx, req.GetRoomId(), req.GetContent())
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	return &emptypb.Empty{}, nil
 }

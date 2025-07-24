@@ -84,18 +84,22 @@ func (rm *RoomManager) RemoveFromRoom(roomID string, client *types.Client) error
 	return nil
 }
 
-func (rm *RoomManager) BroadcastToRoom(roomID string, clipboardData *pb.ClipboardContent) {
+func (rm *RoomManager) BroadcastToRoom(roomID string, clipboardData *pb.ClipboardContent) error {
 	rm.Mutex.Lock()
 	defer rm.Mutex.Unlock()
-	if room, ok := rm.Rooms[roomID]; ok {
-		for _, client := range room.Clients {
-			select {
-			case client.Send <- clipboardData:
-
-			default:
-				rm.RemoveFromRoom(roomID, client)
-			}
-		}
-
+	room, ok := rm.Rooms[roomID]
+	if !ok {
+		return fmt.Errorf("room %s not found", roomID)
 	}
+	for _, client := range room.Clients {
+		select {
+		case client.Send <- clipboardData:
+
+		default:
+			rm.RemoveFromRoom(roomID, client)
+		}
+	}
+
+	return nil
+
 }

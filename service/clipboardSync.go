@@ -7,7 +7,6 @@ import (
 	"github.com/YenXXXW/clipboradSyncServer/types"
 
 	"google.golang.org/grpc"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type ClipboardSyncService struct {
@@ -19,18 +18,16 @@ func NewClipboardSyncService() *ClipboardSyncService {
 	return &ClipboardSyncService{}
 }
 
-func (s *ClipboardSyncService) SendClipBoardUpdate(ctx context.Context, req *pb.ClipboardUpdateRequest) (*emptypb.Empty, error) {
-	roomID := req.GetRoomId()
-	content := req.GetContent()
+func (s *ClipboardSyncService) SendClipBoardUpdate(ctx context.Context, roomID string, content *pb.ClipboardContent) error {
 
-	s.RoomManager.BroadcastToRoom(roomID, content)
+	if err := s.RoomManager.BroadcastToRoom(roomID, content); err != nil {
+		return err
+	}
+	return nil
 
-	return nil, nil
 }
 
-func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(req *pb.SubscribeRequest, grpc grpc.ServerStreamingServer[pb.ClipboardContent]) error {
-	deviceId := req.GetDeviceId()
-	roomId := req.GetRoomId()
+func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(deviceId, roomId string, grpc grpc.ServerStreamingServer[pb.ClipboardContent]) error {
 
 	var client *types.Client
 	exitingClient, ok := s.ClientManager.Clients[deviceId]
