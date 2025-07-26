@@ -1,3 +1,6 @@
+run-clipboardSync:
+	@go run *.go
+
 gen:
 	@protoc \
 		--proto_path=protobuf "protobuf/clipboardSync.proto" \

@@ -15,7 +15,17 @@ type ClipboardSyncService struct {
 }
 
 func NewClipboardSyncService() *ClipboardSyncService {
-	return &ClipboardSyncService{}
+	newRoomManager := RoomManager{
+		Rooms: make(map[string]*types.Room),
+	}
+
+	newClientManager := ClientManager{
+		Clients: make(map[string]*types.Client),
+	}
+	return &ClipboardSyncService{
+		RoomManager:   &newRoomManager,
+		ClientManager: &newClientManager,
+	}
 }
 
 func (s *ClipboardSyncService) SendClipBoardUpdate(ctx context.Context, roomID string, content *pb.ClipboardContent) error {
