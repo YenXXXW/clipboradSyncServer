@@ -2,11 +2,12 @@ package types
 
 import (
 	"context"
+
 	pb "github.com/YenXXXW/clipboradSyncServer/genproto/clipboardSync"
-	"google.golang.org/grpc"
+	"github.com/YenXXXW/clipboradSyncServer/shared"
 )
 
 type ClipboardSyncService interface {
-	SubscribeClipBoardContentUpdate(string, string, grpc.ServerStreamingServer[pb.ClipboardContent]) error
+	SubscribeClipBoardContentUpdate(string, string, shared.StreamWriter) error
 	SendClipBoardUpdate(context.Context, string, *pb.ClipboardContent) error
 }

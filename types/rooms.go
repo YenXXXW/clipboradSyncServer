@@ -1,9 +1,9 @@
 package types
 
 import (
-	"google.golang.org/grpc"
-
 	pb "github.com/YenXXXW/clipboradSyncServer/genproto/clipboardSync"
+	"github.com/YenXXXW/clipboradSyncServer/shared"
+	//"github.com/YenXXXW/clipboradSyncServer/shared"
 )
 
 type Room struct {
@@ -13,7 +13,7 @@ type Room struct {
 
 type Client struct {
 	ID     string
-	Conn   grpc.ServerStream
+	Conn   shared.StreamWriter
 	RoomID string
 	Send   chan *pb.ClipboardContent
 }
@@ -21,5 +21,9 @@ type Client struct {
 type RoomService interface {
 	CreateRoom() string
 	JoinRoom(string, *Client) error
-	RemoveFromRoom(string, *Client) error
+	RemoveFromRoom(string, string) error
+	GetClient(string) (*Client, bool)
+	CreateClient(string, string, shared.StreamWriter) *Client
+	DeleteClient(string)
+	BroadcastToRoom(string, *pb.ClipboardContent) error
 }

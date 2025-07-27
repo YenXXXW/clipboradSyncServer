@@ -2,69 +2,63 @@ package service
 
 import (
 	"context"
+	"log"
 
 	pb "github.com/YenXXXW/clipboradSyncServer/genproto/clipboardSync"
+	"github.com/YenXXXW/clipboradSyncServer/shared"
 	"github.com/YenXXXW/clipboradSyncServer/types"
-
-	"google.golang.org/grpc"
 )
 
 type ClipboardSyncService struct {
-	RoomManager   *RoomManager
-	ClientManager *ClientManager
+	RoomService types.RoomService
 }
 
-func NewClipboardSyncService() *ClipboardSyncService {
-	newRoomManager := RoomManager{
-		Rooms: make(map[string]*types.Room),
-	}
-
-	newClientManager := ClientManager{
-		Clients: make(map[string]*types.Client),
-	}
+func NewClipboardSyncService(roomService types.RoomService) *ClipboardSyncService {
 	return &ClipboardSyncService{
-		RoomManager:   &newRoomManager,
-		ClientManager: &newClientManager,
+		RoomService: roomService,
 	}
 }
 
 func (s *ClipboardSyncService) SendClipBoardUpdate(ctx context.Context, roomID string, content *pb.ClipboardContent) error {
 
-	if err := s.RoomManager.BroadcastToRoom(roomID, content); err != nil {
+	if err := s.RoomService.BroadcastToRoom(roomID, content); err != nil {
 		return err
 	}
 	return nil
 
 }
 
-func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(deviceId, roomId string, grpc grpc.ServerStreamingServer[pb.ClipboardContent]) error {
+func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(deviceId, roomId string, stream shared.StreamWriter) error {
 
 	var client *types.Client
-	exitingClient, ok := s.ClientManager.Clients[deviceId]
+	existingClient, ok := s.RoomService.GetClient(deviceId)
 	if ok {
-		client = exitingClient
-		if client.RoomID == roomId {
-			s.RoomManager.RemoveFromRoom(client.RoomID, client)
+		client = existingClient
+		if client.RoomID != roomId {
+			s.RoomService.RemoveFromRoom(deviceId, client.RoomID)
 			client.RoomID = roomId
 		}
 	} else {
-		client = s.ClientManager.CreateNewClient(roomId, grpc)
+
+		client = s.RoomService.CreateClient(deviceId, roomId, stream)
 	}
 
-	s.RoomManager.JoinRoom(roomId, client)
+	s.RoomService.JoinRoom(roomId, client)
+
+	log.Printf("device: %s joined to the room: %s", deviceId, roomId)
 
 	for {
 		select {
 		case msg := <-client.Send:
-			if err := client.Conn.SendMsg(msg); err != nil {
-				s.RoomManager.RemoveFromRoom(client.RoomID, client)
-				s.ClientManager.RemoveClient(client.ID)
+			if err := client.Conn.Send(msg); err != nil {
+				s.RoomService.RemoveFromRoom(deviceId, client.RoomID)
+				s.RoomService.DeleteClient(client.ID)
 				return err
 			}
 
 		case <-client.Conn.Context().Done():
-			s.RoomManager.RemoveFromRoom(client.RoomID, client)
-			s.ClientManager.RemoveClient(client.ID)
+			s.RoomService.RemoveFromRoom(deviceId, client.RoomID)
+			s.RoomService.DeleteClient(client.ID)
 			return nil
 
 		}

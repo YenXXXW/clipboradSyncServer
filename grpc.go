@@ -26,9 +26,10 @@ func (s *gRPCServer) Run() error {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	clipboardSyncService := service.NewClipboardSyncService()
+	roomService := service.NewRoomService()
+	clipboardSyncService := service.NewClipboardSyncService(roomService)
 	grpcServer := grpc.NewServer()
-	handler.NewGrpcClipboardSyncService(grpcServer, clipboardSyncService)
+	handler.NewGrpcClipboardSyncService(grpcServer, clipboardSyncService, roomService)
 
 	reflection.Register(grpcServer)
 
