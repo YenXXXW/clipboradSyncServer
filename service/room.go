@@ -119,15 +119,25 @@ func (s *RoomService) GetClient(deviceID string) (*types.Client, bool) {
 	return client, ok
 }
 
-// DeleteClient removes a client from the system and signals their goroutine to terminate.
+// DeleteClient removes a client from the system entirely. It removes the client
+// from its room, terminates its subscription goroutine, and deletes it from the manager.
 func (s *RoomService) DeleteClient(deviceID string) {
 	s.clientManager.mutex.Lock()
 	defer s.clientManager.mutex.Unlock()
+	s.roomManager.mutex.Lock()
+	defer s.roomManager.mutex.Unlock()
 
-	if client, ok := s.clientManager.clients[deviceID]; ok {
-		close(client.Done)
-		delete(s.clientManager.clients, deviceID)
+	client, ok := s.clientManager.clients[deviceID]
+	if !ok {
+		return
 	}
+
+	if room, ok := s.roomManager.rooms[client.RoomID]; ok {
+		delete(room.Clients, client.ID)
+	}
+
+	close(client.Done)
+	delete(s.clientManager.clients, deviceID)
 }
 
 // BroadcastToRoom sends a message to all clients in a room except the sender.
@@ -168,4 +178,3 @@ func (s *RoomService) BroadcastToRoom(roomID string, clipboardData *shared.Clipb
 
 	return nil
 }
-

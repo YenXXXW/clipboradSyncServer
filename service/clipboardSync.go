@@ -29,19 +29,9 @@ func (s *ClipboardSyncService) SendClipBoardUpdate(ctx context.Context, roomID s
 
 func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(deviceId, roomId string, stream shared.StreamWriter) error {
 
-	var client *types.Client
-	existingClient, ok := s.RoomService.GetClient(deviceId)
-	if ok {
-		client = existingClient
-		if client.RoomID != roomId {
-			s.RoomService.RemoveFromRoom(deviceId, client.RoomID)
-			client.RoomID = roomId
-		}
-	} else {
+	s.RoomService.DeleteClient(deviceId)
 
-		client = s.RoomService.CreateClient(deviceId, roomId, stream)
-	}
-
+	client := s.RoomService.CreateClient(deviceId, roomId, stream)
 	s.RoomService.JoinRoom(roomId, client)
 
 	log.Printf("device: %s joined to the room: %s", deviceId, roomId)
@@ -50,12 +40,10 @@ func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(deviceId, roomId 
 		select {
 		case msg := <-client.Send:
 			if err := client.Conn.Send(msg); err != nil {
-				s.RoomService.RemoveFromRoom(deviceId, client.RoomID)
 				s.RoomService.DeleteClient(client.DeviceID)
 				return err
 			}
 		case <-client.Conn.Context().Done():
-			s.RoomService.RemoveFromRoom(deviceId, client.RoomID)
 			s.RoomService.DeleteClient(client.DeviceID)
 			return nil
 		case <-client.Done:

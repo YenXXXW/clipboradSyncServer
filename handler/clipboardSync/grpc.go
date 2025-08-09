@@ -80,10 +80,7 @@ func (h *ClipboardSypcGrpcHandler) CreateRoom(ctx context.Context, req *pb.Creat
 
 func (h *ClipboardSypcGrpcHandler) LeaveRoom(ctx context.Context, req *pb.LeaveRoomRequest) (*emptypb.Empty, error) {
 
-	if err := h.roomService.RemoveFromRoom(req.GetRoomId(), req.GetDeviceId()); err != nil {
-		return nil, status.Error(codes.NotFound, err.Error())
-	}
-
+	h.roomService.DeleteClient(req.GetDeviceId())
 	return &emptypb.Empty{}, nil
 
 }
