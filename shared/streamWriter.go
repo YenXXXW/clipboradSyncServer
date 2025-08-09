@@ -2,11 +2,18 @@ package shared
 
 import (
 	"context"
-
-	pb "github.com/YenXXXW/clipboradSyncServer/genproto/clipboardSync"
 )
 
+type ClipboardContent struct {
+	Text string
+}
+
+type ClipboardUpdate struct {
+	DeviceId string
+	Content  ClipboardContent
+}
+
 type StreamWriter interface {
-	Send(*pb.ClipboardContent) error
+	Send(*ClipboardUpdate) error
 	Context() context.Context
 }

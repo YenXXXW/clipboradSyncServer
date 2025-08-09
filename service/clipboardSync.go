@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 
-	pb "github.com/YenXXXW/clipboradSyncServer/genproto/clipboardSync"
 	"github.com/YenXXXW/clipboradSyncServer/shared"
 	"github.com/YenXXXW/clipboradSyncServer/types"
 )
@@ -19,7 +18,7 @@ func NewClipboardSyncService(roomService types.RoomService) *ClipboardSyncServic
 	}
 }
 
-func (s *ClipboardSyncService) SendClipBoardUpdate(ctx context.Context, roomID string, content *pb.ClipboardContent) error {
+func (s *ClipboardSyncService) SendClipBoardUpdate(ctx context.Context, roomID string, content *shared.ClipboardUpdate) error {
 
 	if err := s.RoomService.BroadcastToRoom(roomID, content); err != nil {
 		return err
@@ -52,15 +51,16 @@ func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(deviceId, roomId 
 		case msg := <-client.Send:
 			if err := client.Conn.Send(msg); err != nil {
 				s.RoomService.RemoveFromRoom(deviceId, client.RoomID)
-				s.RoomService.DeleteClient(client.ID)
+				s.RoomService.DeleteClient(client.DeviceID)
 				return err
 			}
-
 		case <-client.Conn.Context().Done():
 			s.RoomService.RemoveFromRoom(deviceId, client.RoomID)
-			s.RoomService.DeleteClient(client.ID)
+			s.RoomService.DeleteClient(client.DeviceID)
 			return nil
-
+		case <-client.Done:
+			log.Printf("device: %s disconnected from room: %s", deviceId, roomId)
+			return nil
 		}
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	pb "github.com/YenXXXW/clipboradSyncServer/genproto/clipboardSync"
+	"github.com/YenXXXW/clipboradSyncServer/shared"
 	"github.com/YenXXXW/clipboradSyncServer/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -28,7 +29,7 @@ func NewGrpcClipboardSyncService(grpc *grpc.Server, clipboardSyncService types.C
 	pb.RegisterClipSyncServiceServer(grpc, grpcHandler)
 }
 
-func (h *ClipboardSypcGrpcHandler) SubscribeClipboardContentUpdate(req *pb.SubscribeRequest, stream grpc.ServerStreamingServer[pb.ClipboardContent]) error {
+func (h *ClipboardSypcGrpcHandler) SubscribeClipboardContentUpdate(req *pb.SubscribeRequest, stream grpc.ServerStreamingServer[pb.ClipboardUpdate]) error {
 	roomId := req.GetRoomId()
 	deviceId := req.GetDeviceId()
 
@@ -40,7 +41,7 @@ func (h *ClipboardSypcGrpcHandler) SubscribeClipboardContentUpdate(req *pb.Subsc
 
 }
 
-func (h *ClipboardSypcGrpcHandler) SendClipboardUpdate(ctx context.Context, req *pb.ClipboardUpdateRequest) (*emptypb.Empty, error) {
+func (h *ClipboardSypcGrpcHandler) SendClipboardUpdate(ctx context.Context, req *pb.ClipboardUpdate) (*emptypb.Empty, error) {
 
 	deviceID := req.GetDeviceId()
 	client, ok := h.roomService.GetClient(deviceID)
@@ -48,7 +49,17 @@ func (h *ClipboardSypcGrpcHandler) SendClipboardUpdate(ctx context.Context, req 
 	if !ok {
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("client with the device_id: %s does not exist", deviceID))
 	}
-	err := h.clipboardSyncService.SendClipBoardUpdate(ctx, client.RoomID, req.GetContent())
+
+	content := shared.ClipboardContent{
+		Text: req.GetContent().GetText(),
+	}
+
+	update := &shared.ClipboardUpdate{
+		DeviceId: req.GetDeviceId(),
+		Content:  content,
+	}
+
+	err := h.clipboardSyncService.SendClipBoardUpdate(ctx, client.RoomID, update)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}

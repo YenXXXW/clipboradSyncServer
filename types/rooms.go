@@ -1,9 +1,9 @@
 package types
 
 import (
-	pb "github.com/YenXXXW/clipboradSyncServer/genproto/clipboardSync"
+	"sync"
+
 	"github.com/YenXXXW/clipboradSyncServer/shared"
-	//"github.com/YenXXXW/clipboradSyncServer/shared"
 )
 
 type Room struct {
@@ -12,10 +12,13 @@ type Room struct {
 }
 
 type Client struct {
-	ID     string
-	Conn   shared.StreamWriter
-	RoomID string
-	Send   chan *pb.ClipboardContent
+	ID       string
+	DeviceID string
+	Conn     shared.StreamWriter
+	RoomID   string
+	Send     chan *shared.ClipboardUpdate
+	Done     chan struct{}
+	Mutex    sync.Mutex
 }
 
 type RoomService interface {
@@ -25,5 +28,5 @@ type RoomService interface {
 	GetClient(string) (*Client, bool)
 	CreateClient(string, string, shared.StreamWriter) *Client
 	DeleteClient(string)
-	BroadcastToRoom(string, *pb.ClipboardContent) error
+	BroadcastToRoom(string, *shared.ClipboardUpdate) error
 }
