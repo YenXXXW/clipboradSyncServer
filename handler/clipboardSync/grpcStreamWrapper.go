@@ -8,17 +8,43 @@ import (
 )
 
 type grpcStreamWrapper struct {
-	stream grpc.ServerStreamingServer[pb.ClipboardUpdate]
+	stream grpc.ServerStreamingServer[pb.UpdateEvent]
 }
 
-func (g *grpcStreamWrapper) Send(update *shared.ClipboardUpdate) error {
-	content := &pb.ClipboardContent{
-		Text: update.Content.Text,
+func (g *grpcStreamWrapper) Send(update *shared.UpdateEvent) error {
+	var grpcUpdate *pb.UpdateEvent
+
+	// Check which type is non-nil
+	if update.ClipboardUpdate != nil {
+		grpcUpdate = &pb.UpdateEvent{
+			Event: &pb.UpdateEvent_ClipboardUpdate{
+				ClipboardUpdate: &pb.ClipboardUpdate{
+					DeviceId: update.ClipboardUpdate.DeviceId,
+					Content: &pb.ClipboardContent{
+						Text: update.ClipboardUpdate.Content.Text,
+					},
+				},
+			},
+		}
+	} else if update.ValidateJoin != nil {
+		grpcUpdate = &pb.UpdateEvent{
+			Event: &pb.UpdateEvent_ValidateJoin{
+				ValidateJoin: &pb.ValidateJoin{
+					ValidateRoom: &pb.Validate{
+						Success: update.ValidateJoin.ValidateRoom.Success,
+						Message: update.ValidateJoin.ValidateRoom.Message,
+					},
+					CheckClient: &pb.Validate{
+						Success: update.ValidateJoin.CheckClient.Success,
+						Message: update.ValidateJoin.CheckClient.Message,
+					},
+				},
+			},
+		}
+	} else {
+		return nil
 	}
-	grpcUpdate := &pb.ClipboardUpdate{
-		DeviceId: update.DeviceId,
-		Content:  content,
-	}
+
 	return g.stream.Send(grpcUpdate)
 }
 

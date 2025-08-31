@@ -29,7 +29,7 @@ func NewGrpcClipboardSyncService(grpc *grpc.Server, clipboardSyncService types.C
 	pb.RegisterClipSyncServiceServer(grpc, grpcHandler)
 }
 
-func (h *ClipboardSypcGrpcHandler) SubscribeClipboardContentUpdate(req *pb.SubscribeRequest, stream grpc.ServerStreamingServer[pb.ClipboardUpdate]) error {
+func (h *ClipboardSypcGrpcHandler) SubscribeClipboardContentUpdate(req *pb.SubscribeRequest, stream grpc.ServerStreamingServer[pb.UpdateEvent]) error {
 	roomId := req.GetRoomId()
 	deviceId := req.GetDeviceId()
 

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	"github.com/YenXXXW/clipboradSyncServer/shared"
@@ -31,15 +32,79 @@ func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(deviceId, roomId 
 
 	s.RoomService.DeleteClient(deviceId)
 
-	client := s.RoomService.CreateClient(deviceId, roomId, stream)
+	client, clientExists := s.RoomService.GetClient(deviceId)
+
+	_, roomExists := s.RoomService.GetRoom(roomId)
+	log.Println("room Exists", roomExists)
+
+	if !roomExists || (clientExists && client.RoomID != "") {
+
+		log.Println("entered this loope")
+		validateJoin := &shared.ValidateJoin{}
+		if !roomExists {
+			roomCheckError := shared.Validate{
+				Success: false,
+				Message: "Room does not exist",
+			}
+
+			validateJoin.ValidateRoom = roomCheckError
+		}
+
+		if clientExists && client.RoomID != "" {
+			checkClientError := shared.Validate{
+				Success: false,
+				Message: "Client is in a room",
+			}
+			validateJoin.CheckClient = checkClientError
+		}
+
+		log.Println("works fine ")
+
+		if !clientExists {
+			client = s.RoomService.CreateClient(deviceId, roomId, stream)
+		}
+
+		log.Println("working till now")
+
+		if err := client.Conn.Send(&shared.UpdateEvent{
+			ValidateJoin: validateJoin,
+		}); err != nil {
+			log.Println("Error sending message on stream")
+			return err
+		}
+
+		return errors.New("Room does not exist or the client has joined a room")
+	}
+
 	s.RoomService.JoinRoom(roomId, client)
+
+	validateJoin := &shared.ValidateJoin{
+		CheckClient: shared.Validate{
+			Success: true,
+		},
+		ValidateRoom: shared.Validate{
+			Success: true,
+		},
+	}
+
+	log.Println("client is ", client)
+
+	if err := client.Conn.Send(&shared.UpdateEvent{
+		ValidateJoin: validateJoin,
+	}); err != nil {
+		log.Println("Error sending message on stream")
+		return err
+	}
 
 	log.Printf("device: %s joined to the room: %s", deviceId, roomId)
 
 	for {
 		select {
 		case msg := <-client.Send:
-			if err := client.Conn.Send(msg); err != nil {
+			update := &shared.UpdateEvent{
+				ClipboardUpdate: msg,
+			}
+			if err := client.Conn.Send(update); err != nil {
 				s.RoomService.DeleteClient(client.DeviceID)
 				return err
 			}

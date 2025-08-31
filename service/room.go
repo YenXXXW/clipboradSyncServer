@@ -100,6 +100,14 @@ func (s *RoomService) RemoveFromRoom(deviceID, roomID string) error {
 	return nil
 }
 
+func (s *RoomService) GetRoom(roomID string) (*types.Room, bool) {
+	s.roomManager.mutex.Lock()
+	defer s.roomManager.mutex.Unlock()
+
+	room, ok := s.roomManager.rooms[roomID]
+	return room, ok
+}
+
 // CreateClient creates a new client and adds it to the client manager.
 func (s *RoomService) CreateClient(deviceID, roomID string, conn shared.StreamWriter) *types.Client {
 	s.clientManager.mutex.Lock()
