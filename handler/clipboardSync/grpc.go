@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"log"
 
 	pb "github.com/YenXXXW/clipboradSyncServer/genproto/clipboardSync"
 	"github.com/YenXXXW/clipboradSyncServer/shared"
@@ -30,6 +31,8 @@ func NewGrpcClipboardSyncService(grpc *grpc.Server, clipboardSyncService types.C
 }
 
 func (h *ClipboardSypcGrpcHandler) SubscribeClipboardContentUpdate(req *pb.SubscribeRequest, stream grpc.ServerStreamingServer[pb.UpdateEvent]) error {
+
+	log.Println("Subscribe Request")
 	roomId := req.GetRoomId()
 	deviceId := req.GetDeviceId()
 
@@ -42,7 +45,7 @@ func (h *ClipboardSypcGrpcHandler) SubscribeClipboardContentUpdate(req *pb.Subsc
 }
 
 func (h *ClipboardSypcGrpcHandler) SendClipboardUpdate(ctx context.Context, req *pb.ClipboardUpdate) (*emptypb.Empty, error) {
-
+	log.Println("Clipboard Update Request")
 	deviceID := req.GetDeviceId()
 	client, ok := h.roomService.GetClient(deviceID)
 
@@ -68,6 +71,7 @@ func (h *ClipboardSypcGrpcHandler) SendClipboardUpdate(ctx context.Context, req 
 }
 
 func (h *ClipboardSypcGrpcHandler) CreateRoom(ctx context.Context, req *pb.CreateRoomRequest) (*pb.CreateRoomResponse, error) {
+	log.Println("Create Room Request")
 	roomId := h.roomService.CreateRoom()
 
 	res := &pb.CreateRoomResponse{
@@ -79,7 +83,7 @@ func (h *ClipboardSypcGrpcHandler) CreateRoom(ctx context.Context, req *pb.Creat
 }
 
 func (h *ClipboardSypcGrpcHandler) LeaveRoom(ctx context.Context, req *pb.LeaveRoomRequest) (*emptypb.Empty, error) {
-
+	fmt.Println("Leave Room Request")
 	h.roomService.DeleteClient(req.GetDeviceId())
 	return &emptypb.Empty{}, nil
 

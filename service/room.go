@@ -45,12 +45,11 @@ func newRoom() *types.Room {
 	}
 }
 
-func newClient(deviceID, roomID string, conn shared.StreamWriter) *types.Client {
+func newClient(deviceID, roomID string) *types.Client {
 	return &types.Client{
 		ID:       uuid.NewString(),
 		DeviceID: deviceID,
 		RoomID:   roomID,
-		Conn:     conn,
 		Send:     make(chan *shared.ClipboardUpdate, 20),
 		Done:     make(chan struct{}),
 	}
@@ -109,11 +108,11 @@ func (s *RoomService) GetRoom(roomID string) (*types.Room, bool) {
 }
 
 // CreateClient creates a new client and adds it to the client manager.
-func (s *RoomService) CreateClient(deviceID, roomID string, conn shared.StreamWriter) *types.Client {
+func (s *RoomService) CreateClient(deviceID, roomID string) *types.Client {
 	s.clientManager.mutex.Lock()
 	defer s.clientManager.mutex.Unlock()
 
-	newClient := newClient(deviceID, roomID, conn)
+	newClient := newClient(deviceID, roomID)
 	s.clientManager.clients[deviceID] = newClient
 	return newClient
 }
@@ -136,16 +135,29 @@ func (s *RoomService) DeleteClient(deviceID string) {
 	defer s.roomManager.mutex.Unlock()
 
 	client, ok := s.clientManager.clients[deviceID]
+	fmt.Println("client to delete", deviceID, client, ok)
 	if !ok {
 		return
 	}
 
-	if room, ok := s.roomManager.rooms[client.RoomID]; ok {
-		delete(room.Clients, client.ID)
+	fmt.Println("we still continue till here")
+
+	room, ok := s.roomManager.rooms[client.RoomID]
+	if !ok {
+		return
 	}
 
+	delete(room.Clients, client.ID)
 	close(client.Done)
 	delete(s.clientManager.clients, deviceID)
+
+	if len(room.Clients) == 0 {
+		delete(s.roomManager.rooms, client.RoomID)
+	}
+
+	fmt.Println("")
+	fmt.Println("deletion is complete")
+	fmt.Println("")
 }
 
 // BroadcastToRoom sends a message to all clients in a room except the sender.

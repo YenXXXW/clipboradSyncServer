@@ -27,7 +27,7 @@ type RoomService interface {
 	RemoveFromRoom(string, string) error
 	GetClient(string) (*Client, bool)
 	GetRoom(string) (*Room, bool)
-	CreateClient(string, string, shared.StreamWriter) *Client
+	CreateClient(string, string) *Client
 	DeleteClient(string)
 	BroadcastToRoom(string, *shared.ClipboardUpdate) error
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/YenXXXW/clipboradSyncServer/shared"
@@ -30,51 +31,116 @@ func (s *ClipboardSyncService) SendClipBoardUpdate(ctx context.Context, roomID s
 
 func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(deviceId, roomId string, stream shared.StreamWriter) error {
 
-	s.RoomService.DeleteClient(deviceId)
-
 	client, clientExists := s.RoomService.GetClient(deviceId)
 
 	_, roomExists := s.RoomService.GetRoom(roomId)
-	log.Println("room Exists", roomExists)
+	fmt.Println()
 
-	if !roomExists || (clientExists && client.RoomID != "") {
+	if !roomExists {
 
-		log.Println("entered this loope")
 		validateJoin := &shared.ValidateJoin{}
-		if !roomExists {
-			roomCheckError := shared.Validate{
-				Success: false,
-				Message: "Room does not exist",
-			}
-
-			validateJoin.ValidateRoom = roomCheckError
+		roomCheckError := shared.Validate{
+			Success: false,
+			Message: "Room does not exist",
 		}
 
-		if clientExists && client.RoomID != "" {
-			checkClientError := shared.Validate{
-				Success: false,
-				Message: "Client is in a room",
-			}
-			validateJoin.CheckClient = checkClientError
-		}
+		validateJoin.ValidateRoom = roomCheckError
 
-		log.Println("works fine ")
+		if err := stream.Send(&shared.UpdateEvent{
 
-		if !clientExists {
-			client = s.RoomService.CreateClient(deviceId, roomId, stream)
-		}
-
-		log.Println("working till now")
-
-		if err := client.Conn.Send(&shared.UpdateEvent{
 			ValidateJoin: validateJoin,
 		}); err != nil {
-			log.Println("Error sending message on stream")
+
+			log.Println("Error sending Validate Join Message", err)
 			return err
 		}
 
-		return errors.New("Room does not exist or the client has joined a room")
+		return errors.New("room with given ID does not exist")
+
 	}
+
+	if clientExists && client.RoomID != "" {
+
+		validateJoin := &shared.ValidateJoin{}
+		checkClientError := shared.Validate{
+			Success: false,
+			Message: "Client is in a room",
+		}
+		validateJoin.CheckClient = checkClientError
+
+		if err := stream.Send(&shared.UpdateEvent{
+			ValidateJoin: validateJoin,
+		}); err != nil {
+			log.Println("Error sending Validate Message when roomId is not empty string", err)
+			return err
+		}
+
+		return errors.New("client is still in a room")
+	}
+
+	if !clientExists {
+
+		client = s.RoomService.CreateClient(deviceId, roomId)
+	}
+
+	UpdateEvent := &shared.UpdateEvent{
+		ValidateJoin: &shared.ValidateJoin{
+			ValidateRoom: shared.Validate{
+				Success: true,
+				Message: "Room Validate Successful",
+			},
+			CheckClient: shared.Validate{
+				Success: true,
+				Message: "Client Validate Successful",
+			},
+		},
+	}
+
+	if err := stream.Send(UpdateEvent); err != nil {
+
+		log.Println("Error sending message on stream", err)
+		return err
+	}
+
+	//if !roomExists || (clientExists && client.RoomID != "") {
+	//
+	//log.Println("entered this loope")
+	//validateJoin := &shared.ValidateJoin{}
+	//if !roomExists {
+	//roomCheckError := shared.Validate{
+	//Success: false,
+	//Message: "Room does not exist",
+	//}
+	//
+	//validateJoin.ValidateRoom = roomCheckError
+	//
+	//}
+	//
+	//if clientExists && client.RoomID != "" {
+	//checkClientError := shared.Validate{
+	//Success: false,
+	//Message: "Client is in a room",
+	//}
+	//validateJoin.CheckClient = checkClientError
+	//}
+	//
+	//log.Println("works fine ")
+	//
+	//log.Println("working till now")
+	//
+	//if err := client.Conn.Send(&shared.UpdateEvent{
+	//ValidateJoin: validateJoin,
+	//}); err != nil {
+	//log.Println("Error sending message on stream")
+	//return err
+	//}
+	//
+	//return errors.New("Room does not exist or the client has joined a room")
+	//}
+	//
+	//if !clientExists {
+	//client = s.RoomService.CreateClient(deviceId, roomId, stream)
+	//}
 
 	s.RoomService.JoinRoom(roomId, client)
 
@@ -87,12 +153,10 @@ func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(deviceId, roomId 
 		},
 	}
 
-	log.Println("client is ", client)
-
-	if err := client.Conn.Send(&shared.UpdateEvent{
+	if err := stream.Send(&shared.UpdateEvent{
 		ValidateJoin: validateJoin,
 	}); err != nil {
-		log.Println("Error sending message on stream")
+		log.Println("Error sending message on stream", err)
 		return err
 	}
 
@@ -104,11 +168,12 @@ func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(deviceId, roomId 
 			update := &shared.UpdateEvent{
 				ClipboardUpdate: msg,
 			}
-			if err := client.Conn.Send(update); err != nil {
+			if err := stream.Send(update); err != nil {
 				s.RoomService.DeleteClient(client.DeviceID)
 				return err
 			}
-		case <-client.Conn.Context().Done():
+		case <-stream.Context().Done():
+			fmt.Println("this tirggered")
 			s.RoomService.DeleteClient(client.DeviceID)
 			return nil
 		case <-client.Done:
