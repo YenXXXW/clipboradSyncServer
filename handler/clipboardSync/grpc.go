@@ -32,7 +32,6 @@ func NewGrpcClipboardSyncService(grpc *grpc.Server, clipboardSyncService types.C
 
 func (h *ClipboardSypcGrpcHandler) SubscribeClipboardContentUpdate(req *pb.SubscribeRequest, stream grpc.ServerStreamingServer[pb.UpdateEvent]) error {
 
-	log.Println("Subscribe Request")
 	roomId := req.GetRoomId()
 	deviceId := req.GetDeviceId()
 
@@ -45,11 +44,11 @@ func (h *ClipboardSypcGrpcHandler) SubscribeClipboardContentUpdate(req *pb.Subsc
 }
 
 func (h *ClipboardSypcGrpcHandler) SendClipboardUpdate(ctx context.Context, req *pb.ClipboardUpdate) (*emptypb.Empty, error) {
-	log.Println("Clipboard Update Request")
 	deviceID := req.GetDeviceId()
 	client, ok := h.roomService.GetClient(deviceID)
 
 	if !ok {
+		log.Println("client does not exist")
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("client with the device_id: %s does not exist", deviceID))
 	}
 
@@ -71,7 +70,6 @@ func (h *ClipboardSypcGrpcHandler) SendClipboardUpdate(ctx context.Context, req 
 }
 
 func (h *ClipboardSypcGrpcHandler) CreateRoom(ctx context.Context, req *pb.CreateRoomRequest) (*pb.CreateRoomResponse, error) {
-	log.Println("Create Room Request")
 	roomId := h.roomService.CreateRoom()
 
 	res := &pb.CreateRoomResponse{

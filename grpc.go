@@ -28,7 +28,7 @@ func (s *gRPCServer) Run() error {
 
 	roomService := service.NewRoomService()
 	clipboardSyncService := service.NewClipboardSyncService(roomService)
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(handler.UnaryInterceptor), grpc.StreamInterceptor(handler.StreamInterceptor))
 	handler.NewGrpcClipboardSyncService(grpcServer, clipboardSyncService, roomService)
 
 	reflection.Register(grpcServer)

@@ -173,7 +173,7 @@ func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(deviceId, roomId 
 				return err
 			}
 		case <-stream.Context().Done():
-			fmt.Println("this tirggered")
+			//when client calls context.done delete the client struct
 			s.RoomService.DeleteClient(client.DeviceID)
 			return nil
 		case <-client.Done:

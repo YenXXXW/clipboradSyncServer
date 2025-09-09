@@ -135,12 +135,9 @@ func (s *RoomService) DeleteClient(deviceID string) {
 	defer s.roomManager.mutex.Unlock()
 
 	client, ok := s.clientManager.clients[deviceID]
-	fmt.Println("client to delete", deviceID, client, ok)
 	if !ok {
 		return
 	}
-
-	fmt.Println("we still continue till here")
 
 	room, ok := s.roomManager.rooms[client.RoomID]
 	if !ok {
@@ -155,9 +152,6 @@ func (s *RoomService) DeleteClient(deviceID string) {
 		delete(s.roomManager.rooms, client.RoomID)
 	}
 
-	fmt.Println("")
-	fmt.Println("deletion is complete")
-	fmt.Println("")
 }
 
 // BroadcastToRoom sends a message to all clients in a room except the sender.
