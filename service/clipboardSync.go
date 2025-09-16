@@ -61,12 +61,29 @@ func (s *ClipboardSyncService) SubscribeClipBoardContentUpdate(deviceId, roomId 
 
 	if clientExists && client.RoomID != "" {
 
-		validateJoin := &shared.ValidateJoin{}
-		checkClientError := shared.Validate{
-			Success: false,
-			Message: "Client is in a room",
+		roomCheck := shared.Validate{
+			Success: true,
 		}
-		validateJoin.CheckClient = checkClientError
+
+		var checkClientError shared.Validate
+
+		if client.RoomID == roomId {
+			checkClientError = shared.Validate{
+				Success: true,
+				Message: "You are already in the target room",
+			}
+
+		} else {
+			checkClientError = shared.Validate{
+				Success: false,
+				Message: "Client is in a room",
+			}
+		}
+
+		validateJoin := &shared.ValidateJoin{
+			ValidateRoom: roomCheck,
+			CheckClient:  checkClientError,
+		}
 
 		if err := stream.Send(&shared.UpdateEvent{
 			ValidateJoin: validateJoin,

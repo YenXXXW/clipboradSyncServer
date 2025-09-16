@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Build a static binary for Linux
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o clipsync main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o clipsync .
 
 # ----------------------
 # 2️⃣ Runtime Stage
@@ -31,7 +31,7 @@ WORKDIR /app
 COPY --from=builder /app/clipsync .
 
 # Expose the port your app listens on
-EXPOSE 8080
+EXPOSE 9000 
 
 # Run the binary
 CMD ["./clipsync"]
